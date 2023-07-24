@@ -33,6 +33,7 @@ namespace DevelopmentChallenge.Data.Classes
 
         public const int Castellano = 1;
         public const int Ingles = 2;
+        public const int Portugues = 3;
 
         #endregion
 
@@ -53,24 +54,16 @@ namespace DevelopmentChallenge.Data.Classes
         public static string Imprimir(List<FormaGeometrica> formas, int idioma)
         {
             var sb = new StringBuilder();
-
+            var traducciones = GetTraducciones();
             if (!formas.Any())
             {
-                if (idioma == Castellano)
-                    sb.Append("<h1>Lista vacía de formas!</h1>");
-                else
-                    sb.Append("<h1>Empty list of shapes!</h1>");
+                sb.Append("<h1>"+ traducciones["listaVaciaFormas"].FirstOrDefault(x => x.Key == idioma).Value +"</h1>");
             }
             else
             {
-
                 // Hay por lo menos una forma
                 // HEADER
-                if (idioma == Castellano)
-                    sb.Append("<h1>Reporte de Formas</h1>");
-                else
-                    // default es inglés
-                    sb.Append("<h1>Shapes report</h1>");
+                sb.Append("<h1>"+ traducciones["reporteFormas"].FirstOrDefault(x => x.Key == idioma).Value + "</h1>");
 
                 Dictionary<int, List<FormaGeometrica>> listFormas = new Dictionary<int, List<FormaGeometrica>>();
 
@@ -99,9 +92,9 @@ namespace DevelopmentChallenge.Data.Classes
 
                 // FOOTER
                 sb.Append("TOTAL:<br/>");
-                sb.Append(listFormas.Count() + " " + (idioma == Castellano ? "formas" : "shapes") + " ");
-                sb.Append((idioma == Castellano ? "Perimetro " : "Perimeter ") + (perimetros).ToString("#.##") + " ");
-                sb.Append("Area " + (areas).ToString("#.##"));
+                sb.Append(listFormas.Count() + " " + traducciones["formas"].FirstOrDefault(x => x.Key == idioma).Value + " ");
+                sb.Append((traducciones["perimetro"].FirstOrDefault(x => x.Key == idioma).Value) + " " + (perimetros).ToString("#.##") + " ");
+                sb.Append((traducciones["perimetro"].FirstOrDefault(x => x.Key == idioma).Value) + " " + (areas).ToString("#.##"));
             }
 
             return sb.ToString();
@@ -111,10 +104,10 @@ namespace DevelopmentChallenge.Data.Classes
         {
             if (cantidad > 0)
             {
-                if (idioma == Castellano)
-                    return $"{cantidad} {TraducirForma(tipo, cantidad, idioma)} | Area {area:#.##} | Perimetro {perimetro:#.##} <br/>";
-
-                return $"{cantidad} {TraducirForma(tipo, cantidad, idioma)} | Area {area:#.##} | Perimeter {perimetro:#.##} <br/>";
+                var traducciones = GetTraducciones();
+                return $"{cantidad} {TraducirForma(tipo, cantidad, idioma)} | " + (traducciones["area"].FirstOrDefault(x => x.Key == idioma).Value) + " {"
+                    + (traducciones["area"].FirstOrDefault(x => x.Key == idioma).Value) + ":#.##} | " 
+                    + (traducciones["perimetro"].FirstOrDefault(x => x.Key == idioma).Value) + " {" + (traducciones["perimetro"].FirstOrDefault(x => x.Key == idioma).Value) + ":#.##} <br/>";
             }
 
             return string.Empty;
@@ -122,17 +115,17 @@ namespace DevelopmentChallenge.Data.Classes
 
         private static string TraducirForma(int tipo, int cantidad, int idioma)
         {
+            var traducciones = GetTraducciones();
             switch (tipo)
             {
                 case Cuadrado:
-                    if (idioma == Castellano) return cantidad == 1 ? "Cuadrado" : "Cuadrados";
-                    else return cantidad == 1 ? "Square" : "Squares";
+                    return cantidad == 1 ? (traducciones["cuadrado"].FirstOrDefault(x => x.Key == idioma).Value) : (traducciones["cuadrados"].FirstOrDefault(x => x.Key == idioma).Value);
                 case Circulo:
-                    if (idioma == Castellano) return cantidad == 1 ? "Círculo" : "Círculos";
-                    else return cantidad == 1 ? "Circle" : "Circles";
-                case TrianguloEquilatero:
-                    if (idioma == Castellano) return cantidad == 1 ? "Triángulo" : "Triángulos";
-                    else return cantidad == 1 ? "Triangle" : "Triangles";
+                    return cantidad == 1 ? (traducciones["circulo"].FirstOrDefault(x => x.Key == idioma).Value) : (traducciones["circulos"].FirstOrDefault(x => x.Key == idioma).Value);
+                case TrianguloEquilatero: 
+                    return cantidad == 1 ? (traducciones["triangulo"].FirstOrDefault(x => x.Key == idioma).Value) : (traducciones["triangulos"].FirstOrDefault(x => x.Key == idioma).Value);
+                case Trapecio:
+                    return cantidad == 1 ? (traducciones["trapecio"].FirstOrDefault(x => x.Key == idioma).Value) : (traducciones["trapecios"].FirstOrDefault(x => x.Key == idioma).Value);
             }
 
             return string.Empty;
@@ -160,11 +153,125 @@ namespace DevelopmentChallenge.Data.Classes
                 case TrianguloEquilatero: return _ladoA * 3;
                 case Trapecio:
                     decimal ladoNoParalelo = (_ladoA - _ladoB) / 2;
-                    decimal ladoOblicuo = (decimal)Math.Sqrt((double)(_altura * _altura + ladoNoParalelo * ladoNoParalelo));
-                    return _ladoA + _ladoB + 2 * ladoOblicuo;
+                    decimal ladoOblicuo = (decimal)Math.Sqrt((double)((_altura * _altura) + (ladoNoParalelo * ladoNoParalelo)));
+                    return (_ladoA + _ladoB) + (2 * ladoOblicuo);
                 default:
                     throw new ArgumentOutOfRangeException(@"Forma desconocida");
             }
+        }
+
+
+        public static Dictionary<string, Dictionary<int, string>> GetTraducciones()
+        {
+            Dictionary<string, Dictionary<int, string>> Traducciones = new Dictionary<string, Dictionary<int, string>>()
+            {
+                {
+                    "listaVaciaFormas", new Dictionary<int, string>
+                    {
+                        { Castellano, "Lista vacía de formas!" },
+                        { Portugues, "relatório de formas geométricas" },
+                        { Ingles, "Empty list of shapes!" }
+                    }
+                },
+                {
+                    "reporteFormas", new Dictionary<int, string>
+                    {
+                        { Castellano, "Reporte de Formas" },
+                        { Portugues, "Relatório de formas" },
+                        { Ingles, "Shapes report" }
+                    }
+                },
+                {
+                    "formas", new Dictionary<int, string>
+                    {
+                        { Castellano, "formas" },
+                        { Portugues, "formas" },
+                        { Ingles, "shapes" }
+                    }
+                },
+                {
+                    "perimetro", new Dictionary<int, string>
+                    {
+                        { Castellano, "Perimetro" },
+                        { Portugues, "Perímetro" },
+                        { Ingles, "Perimeter" }
+                    }
+                },
+                {
+                    "area", new Dictionary<int, string>
+                    {
+                        { Castellano, "Area" },
+                        { Portugues, "Área" },
+                        { Ingles, "Area" }
+                    }
+                },
+                {
+                    "cuadrado", new Dictionary<int, string>
+                    {
+                        { Castellano, "Cuadrado" },
+                        { Portugues, "Quadrado" },
+                        { Ingles, "Square" }
+                    }
+                },
+                {
+                    "circulo", new Dictionary<int, string>
+                    {
+                        { Castellano, "Círculo" },
+                        { Portugues, "Círculo" },
+                        { Ingles, "Circle" }
+                    }
+                },
+                {
+                    "triangulo", new Dictionary<int, string>
+                    {
+                        { Castellano, "Triángulo" },
+                        { Portugues, "Triângulo" },
+                        { Ingles, "Triángulo" }
+                    }
+                },
+                {
+                    "trapecio", new Dictionary<int, string>
+                    {
+                        { Castellano, "Trapecio" },
+                        { Portugues, "Trapézio" },
+                        { Ingles, "Trapeze" }
+                    }
+                },
+                {
+                    "cuadrados", new Dictionary<int, string>
+                    {
+                        { Castellano, "Cuadrados" },
+                        { Portugues, "Quadrados" },
+                        { Ingles, "Squares" }
+                    }
+                },
+                {
+                    "circulos", new Dictionary<int, string>
+                    {
+                        { Castellano, "Círculos" },
+                        { Portugues, "Círculo" },
+                        { Ingles, "Circles" }
+                    }
+                },
+                {
+                    "triangulos", new Dictionary<int, string>
+                    {
+                        { Castellano, "Triángulos" },
+                        { Portugues, "Triângulo" },
+                        { Ingles, "Triangles" }
+                    }
+                },
+                {
+                    "trapecios", new Dictionary<int, string>
+                    {
+                        { Castellano, "Trapecios" },
+                        { Portugues, "Trapézio" },
+                        { Ingles, "Trapezoids" }
+                    }
+                },
+            };
+
+            return Traducciones;
         }
     }
 }
